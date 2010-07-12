@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class ActiveMongoMetaTest < Test::Unit::TestCase
+  
   context "A new ActiveMongoMeta document" do
     setup do
       @amm = ActiveMongoMeta.new :has_cheez => true, "blah" => false

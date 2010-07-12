@@ -5,20 +5,22 @@ class ActiveMongoMeta
   key :_active_record_type, String
   key :_keys, Array #TODO check for uniq
   key :_data, Hash
+  
+  def initialize(*args)
+    super
+    create_accessors
+  end
     
   def attributes=(attribs)
-    debugger
     attribs["_data"] ||= {}
     attribs["_data"].merge!(filter_meta_data(attribs))
     super
-    for key in self._keys
-      create_accessor(key)
-    end
-    debugger
+    create_accessors
   end
 
   def define_datum(key, value = nil)
-    add_datum key, value
+    add_keys key
+    metadata[key.to_s] = value
     create_accessor(key)
   end
   
@@ -57,9 +59,16 @@ class ActiveMongoMeta
     end
   end
   
-  def add_datum key, value
-    add_keys key
-    metadata[key.to_s] = value
+  # def add_datum key, value
+  #   add_keys key
+  #   metadata[key.to_s] = value
+  # end
+  # 
+  
+  def create_accessors
+    for key in self._keys
+      create_accessor(key)
+    end
   end
   
   def create_accessor(key)

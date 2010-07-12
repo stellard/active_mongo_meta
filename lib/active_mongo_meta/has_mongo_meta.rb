@@ -13,7 +13,11 @@ module HasMongoMeta
   module InstanceMethods
     
     def save_meta_data
-      @metadata.save if @metadata
+      if @metadata
+        @metadata._active_record_id = self.id
+        @metadata._active_record_type = self.class.to_s
+        @metadata.save
+      end
     end
     
     def metadata
@@ -21,27 +25,41 @@ module HasMongoMeta
     end
     
     def metadata=(meta_data)
-      # debugger
-      metadata.attributes = metadata.attributes.merge!(meta_data)
+      if @metadata
+        @metadata.attributes = meta_data
+      else
+        @metadata = set_metadata(meta_data)
+      end
     end
     
-    def method_missing(*args)
-      raise
-      debugger
+    def method_missing(method, *args)
+      if metadata.respond_to? method
+        metadata.send(method)
+      else
+        super
+      end
     end
     
     private
     
     def get_metadata
       if self.new_record?
-        new_metadata
+        ActiveMongoMeta.new
       else
-        ActiveMongoMeta.find({:_active_record_id => self.id, :_active_record_type => self.class.to_s}) || new_metadata  
+        find_meta_data || ActiveMongoMeta.new
       end
     end
     
-    def new_metadata
-      ActiveMongoMeta.new :_active_record_id => self.id, :_active_record_type => self.class.to_s
+    def set_metadata(args)
+      if self.new_record?
+         ActiveMongoMeta.new(args)
+      else
+        find_meta_data.atrributes = args || new_metadata(args)
+      end
+    end
+    
+    def find_meta_data
+      ActiveMongoMeta.first({:_active_record_id => self.id, :_active_record_type => self.class.to_s})
     end
     
   end 

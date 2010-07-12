@@ -34,5 +34,10 @@ class ActiveMongoMetaTest < Test::Unit::TestCase
       assert @foo.metadata.has_bar == "never"
       assert @foo.has_bar == "never"
     end
+    
+    should "allow setting new datum" do
+      @foo.metadata.define_datum(:has_poo, "yup")
+      assert @foo.metadata.has_poo == "yup" 
+    end
   end
 end
